@@ -1,0 +1,89 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: irestora-app:latest
+    container_name: irestora_app
+    restart: always
+    working_dir: /var/www/html
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DB_HOST: db
+      DB_USER: ${DB_USER:-irestora}
+      DB_PASSWORD: ${DB_PASSWORD:-SecurePassword123!}
+      DB_NAME: ${DB_NAME:-irestora_db}
+      DB_PORT: 3306
+    volumes:
+      - app_cache:/var/www/html/application/cache
+      - app_logs:/var/www/html/application/logs
+      - app_uploads:/var/www/html/uploads
+      - app_frequent:/var/www/html/frequent_changing
+      - ./install:/var/www/html/install:ro
+      - ./docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+    networks:
+      - irestora_net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: nginx:1.25-alpine
+    container_name: irestora_web
+    restart: always
+    ports:
+      - "${WEB_PORT:-80}:80"
+    volumes_from:
+      - app
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+    networks:
+      - irestora_net
+    depends_on:
+      - app
+
+  db:
+    image: mysql:8.0
+    container_name: irestora_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-RootPassword123!}
+      MYSQL_DATABASE: ${DB_NAME:-irestora_db}
+      MYSQL_USER: ${DB_USER:-irestora}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-SecurePassword123!}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - irestora_net
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max_connections=1000 --max_allowed_packet=256M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-RootPassword123!}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: irestora_redis
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - irestora_net
+
+volumes:
+  db_data:
+  redis_data:
+  app_cache:
+  app_logs:
+  app_uploads:
+  app_frequent:
+
+networks:
+  irestora_net:
+    driver: bridge

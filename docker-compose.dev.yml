@@ -1,0 +1,29 @@
+# Development overrides: bind-mount source, dev PHP config, no restart policy
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: irestora-app:latest
+    container_name: irestora_app
+    restart: "no"
+    environment:
+      APP_ENV: development
+      DB_HOST: db
+      DB_USER: ${DB_USER:-irestora}
+      DB_PASSWORD: ${DB_PASSWORD:-SecurePassword123!}
+      DB_NAME: ${DB_NAME:-irestora_db}
+      DB_PORT: 3306
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+      - ./docker/php/php-dev.ini:/usr/local/etc/php/conf.d/custom.ini:ro
+
+  web:
+    restart: "no"
+
+  db:
+    restart: "no"
+
+  redis:
+    restart: "no"
