@@ -8,12 +8,14 @@ services:
     restart: always
     working_dir: /var/www/html
     environment:
-      APP_ENV: ${APP_ENV:-production}
-      DB_HOST: db
-      DB_USER: ${DB_USER:-irestora}
-      DB_PASSWORD: ${DB_PASSWORD:-SecurePassword123!}
+      DB_HOST: shared-mariadb
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-rootpass}
       DB_NAME: ${DB_NAME:-irestora_db}
-      DB_PORT: 3306
+      DB_PORT: "3306"
+    networks:
+      - irestora_net
+      - shared-db-net
     volumes:
       - app_cache:/var/www/html/application/cache
       - app_logs:/var/www/html/application/logs
@@ -43,25 +45,17 @@ services:
     depends_on:
       - app
 
-  db:
-    environment:
-      DB_HOST: shared-mariadb
-      DB_NAME: irestora_db
-      DB_USER: root
-      DB_PASSWORD: rootpass
-    networks:
-      - shared-db-net
 
-networks:
-  shared-db-net:
-    external: true
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max_connections=1000 --max_allowed_packet=256M
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-Root123456!}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+# networks:
+#   shared-db-net:
+#     external: true
+#     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max_connections=1000 --max_allowed_packet=256M
+#     healthcheck:
+#       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-Root123456!}"]
+#       interval: 10s
+#       timeout: 5s
+#       retries: 5
+#       start_period: 30s
     
 
   redis:
@@ -75,8 +69,6 @@ networks:
       - irestora_net
 
 volumes:
-  db_data:
-  redis_data:
   app_cache:
   app_logs:
   app_uploads:
@@ -85,6 +77,9 @@ volumes:
 networks:
   irestora_net:
     driver: bridge
+  shared-db-net:
+    external: true
+
 
 
 
