@@ -44,20 +44,17 @@ services:
       - app
 
   db:
-    image: mysql:8.0
-    container_name: irestora_db
-    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-RootPassword123!}
-      MYSQL_DATABASE: ${DB_NAME:-irestora_db}
-      MYSQL_USER: ${DB_USER:-irestora}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-SecurePassword123!}
-    volumes:
-      - db_data:/var/lib/mysql
-      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
-      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+      DB_HOST: shared-mysql
+      DB_NAME: irestora_db
+      DB_USER: root
+      DB_PASSWORD: rootpass
     networks:
-      - irestora_net
+      - shared-db-net
+
+networks:
+  shared-db-net:
+    external: true
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max_connections=1000 --max_allowed_packet=256M
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-Root123456!}"]
@@ -65,6 +62,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    
 
   redis:
     image: redis:7-alpine
@@ -87,4 +85,5 @@ volumes:
 networks:
   irestora_net:
     driver: bridge
+
 
