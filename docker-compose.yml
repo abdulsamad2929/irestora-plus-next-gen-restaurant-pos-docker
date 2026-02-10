@@ -45,7 +45,7 @@ services:
 
   db:
     environment:
-      DB_HOST: shared-mysql
+      DB_HOST: shared-mariadb
       DB_NAME: irestora_db
       DB_USER: root
       DB_PASSWORD: rootpass
@@ -85,5 +85,6 @@ volumes:
 networks:
   irestora_net:
     driver: bridge
+
 
 
