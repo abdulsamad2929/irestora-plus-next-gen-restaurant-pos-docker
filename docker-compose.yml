@@ -68,6 +68,7 @@ volumes:
   app_logs:
   app_uploads:
   app_frequent:
+  redis_data:
 
 networks:
   irestora_net:
