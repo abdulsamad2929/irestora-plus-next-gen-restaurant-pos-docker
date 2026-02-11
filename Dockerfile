@@ -19,7 +19,8 @@ COPY . .
 
 RUN mkdir -p application/cache application/logs uploads frequent_changing images/table_draw_object \
     && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 application/cache application/logs uploads frequent_changing
+    && chmod -R 775 application/cache application/logs uploads frequent_changing \
+    && chmod -R o+rX /var/www/html
 
 RUN if [ -f composer.json ]; then composer install --no-dev --optimize-autoloader --no-interaction; fi
 

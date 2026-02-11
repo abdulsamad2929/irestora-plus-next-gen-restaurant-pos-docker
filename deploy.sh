@@ -81,6 +81,7 @@ done
 
 $COMPOSE $COMPOSE_FILES exec -T app chown -R www-data:www-data /var/www/html/application/cache /var/www/html/application/logs /var/www/html/uploads /var/www/html/frequent_changing 2>/dev/null || true
 $COMPOSE $COMPOSE_FILES exec -T app chmod -R 775 /var/www/html/application/cache /var/www/html/uploads /var/www/html/frequent_changing 2>/dev/null || true
+$COMPOSE $COMPOSE_FILES exec -T app chmod -R o+rX /var/www/html 2>/dev/null || true
 
 echo ""
 echo -e "${GREEN}Server is ready.${NC}"
