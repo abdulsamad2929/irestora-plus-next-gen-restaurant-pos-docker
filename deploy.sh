@@ -71,7 +71,7 @@ $COMPOSE $COMPOSE_FILES up -d
 
 echo -e "${YELLOW}Waiting for DB shared-mariadb (up to 60s)...${NC}"
 for i in $(seq 1 60); do
-    if docker run --rm --network shared-db-net mariadb:11 mysqladmin ping -h shared-mariadb -u "${DB_USER:-root}" -p"${DB_PASSWORD:-rootpass}" --silent 2>/dev/null; then
+    if docker run --rm --network shared-db-net busybox nc -z shared-mariadb 3306 2>/dev/null; then
         echo -e "${GREEN}DB ready${NC}"
         break
     fi
