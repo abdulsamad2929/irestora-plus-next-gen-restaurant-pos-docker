@@ -1,0 +1,48 @@
+# Example: use this on the HOST nginx (the one listening on port 80)
+# to route traffic to the iRestora Docker app.
+#
+# 1. Set iRestora to use host port 8090: in .env set WEB_PORT=8090 and redeploy.
+# 2. Copy this file to host nginx, e.g. /etc/nginx/sites-available/irestora.conf
+# 3. Enable and reload: sudo ln -s /etc/nginx/sites-available/irestora.conf /etc/nginx/sites-enabled/ && sudo nginx -t && sudo systemctl reload nginx
+
+# Option A: route by subdomain (e.g. irestora.yourdomain.com)
+# server {
+#     listen 80;
+#     server_name irestora.yourdomain.com;
+#     location / {
+#         proxy_pass http://127.0.0.1:8090;
+#         proxy_http_version 1.1;
+#         proxy_set_header Host $host;
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#     }
+# }
+
+# Option B: route by path (e.g. http://yourdomain.com/irestora/)
+# server {
+#     listen 80;
+#     server_name yourdomain.com;
+#     location /irestora/ {
+#         proxy_pass http://127.0.0.1:8090/;
+#         proxy_http_version 1.1;
+#         proxy_set_header Host $host;
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#     }
+# }
+
+# Option C: route default server or a dedicated server_name to iRestora
+server {
+    listen 80;
+    server_name _;   # or use a hostname, e.g. irestora.example.com
+    location / {
+        proxy_pass http://127.0.0.1:8090;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

@@ -93,6 +93,31 @@ chmod +x deploy.sh
 
 ---
 
+## Troubleshooting
+
+### "Site can't be reached" on port 8090
+
+If you use **WEB_PORT=8090** (e.g. because port 80 is used by another app), the server firewall may block port 8090. Open it:
+
+**Ubuntu/Debian (ufw):**
+```bash
+sudo ufw allow 8090/tcp
+sudo ufw reload
+sudo ufw status
+```
+
+**Firewalld (RHEL/CentOS):**
+```bash
+sudo firewall-cmd --permanent --add-port=8090/tcp
+sudo firewall-cmd --reload
+```
+
+**Cloud (AWS/GCP/Azure):** Open port 8090 in the instance/VM security group or network rules.
+
+Then try again: `http://YOUR_SERVER_IP:8090`
+
+---
+
 ## Summary
 
 | Step | Production | Development |

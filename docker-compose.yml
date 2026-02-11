@@ -29,7 +29,7 @@ services:
     container_name: irestora_web
     restart: always
     ports:
-      - "${WEB_PORT:-8090}:8090"
+      - "0.0.0.0:${WEB_PORT:-8090}:8090"
     volumes_from:
       - app
     volumes:
