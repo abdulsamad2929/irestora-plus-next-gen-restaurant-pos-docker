@@ -69,13 +69,13 @@ fi
 echo -e "${YELLOW}Starting services...${NC}"
 $COMPOSE $COMPOSE_FILES up -d
 
-echo -e "${YELLOW}Waiting for DB (up to 60s)...${NC}"
+echo -e "${YELLOW}Waiting for DB shared-mariadb (up to 60s)...${NC}"
 for i in $(seq 1 60); do
-    if $COMPOSE $COMPOSE_FILES exec -T db mysqladmin ping -h localhost -u root -p"${MYSQL_ROOT_PASSWORD:-RootPassword123!}" --silent 2>/dev/null; then
+    if docker run --rm --network shared-db-net mariadb:11 mysqladmin ping -h shared-mariadb -u "${DB_USER:-root}" -p"${DB_PASSWORD:-rootpass}" --silent 2>/dev/null; then
         echo -e "${GREEN}DB ready${NC}"
         break
     fi
-    [ "$i" -eq 60 ] && { echo -e "${RED}DB did not become ready${NC}"; $COMPOSE $COMPOSE_FILES logs db | tail -30; exit 1; }
+    [ "$i" -eq 60 ] && { echo -e "${RED}DB did not become ready. Ensure shared-mariadb is on network shared-db-net: docker network connect shared-db-net shared-mariadb${NC}"; exit 1; }
     sleep 1
 done
 
@@ -88,7 +88,7 @@ HOST="$([ -n "$DOCKER_HOST" ] && echo 'localhost' || (hostname -I 2>/dev/null | 
 echo "  Mode:    $([ "$DEV_MODE" = true ] && echo 'development' || echo 'production')"
 echo "  HTTP:    http://${HOST}:${WEB_PORT:-80}"
 echo "  Install: http://${HOST}:${WEB_PORT:-80}/install"
-echo "  App:     irestora_app | Web: irestora_web | DB: irestora_db | Redis: irestora_redis"
+echo "  App:     irestora_app | Web: irestora_web | DB: shared-mariadb (external) | Redis: irestora_redis"
 echo "  Logs:    $COMPOSE $COMPOSE_FILES logs -f"
 if $DEV_MODE; then
     echo ""
