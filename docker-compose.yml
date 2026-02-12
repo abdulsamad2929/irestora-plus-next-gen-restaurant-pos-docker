@@ -11,7 +11,7 @@ services:
       DB_HOST: shared-mariadb
       DB_USER: ${DB_USER:-root}
       DB_PASSWORD: ${DB_PASSWORD:-rootpass}
-      DB_NAME: ${DB_NAME:-irestora_db}
+      DB_NAME: ${DB_NAME:-kalysfry_chick_db}
       DB_PORT: "3306"
     networks:
       - irestora_net
@@ -75,6 +75,7 @@ networks:
     driver: bridge
   shared-db-net:
     external: true
+
 
 
 
