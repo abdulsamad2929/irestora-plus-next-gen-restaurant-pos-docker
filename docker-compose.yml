@@ -18,8 +18,8 @@ services:
       - app_cache:/var/www/html/application/cache
       - app_logs:/var/www/html/application/logs
       - app_uploads:/var/www/html/uploads
-      - app_frequent:/var/www/html/frequent_changing
-      - ./install:/var/www/html/install:ro
+      - ./frequent_changing:/var/www/html/frequent_changing
+      - ./install:/var/www/html/install
       - ./docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
     networks:
       - irestora_net
@@ -32,37 +32,43 @@ services:
     container_name: irestora_web
     restart: always
     ports:
-      - "${WEB_PORT:-8090}:8090"
+      - "80:80"
+      - "443:443"
     volumes_from:
       - app
     volumes:
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
     networks:
       - irestora_net
     depends_on:
       - app
 
   db:
+    image: mariadb:10.11
+    container_name: irestora_db
+    restart: always
+    ports:
+      - "3306:3306"
     environment:
-      DB_HOST: shared-mariadb
-      DB_NAME: irestora_db
-      DB_USER: root
-      DB_PASSWORD: rootpass
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-RootPassword123!}
+      MYSQL_DATABASE: ${DB_NAME:-irestora_db}
+      MYSQL_USER: ${DB_USER:-irestora}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-SecurePassword123!}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/mariadb.conf.d/99-custom.cnf:ro
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
     networks:
-      - shared-db-net
-
-networks:
-  shared-db-net:
-    external: true
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max_connections=1000 --max_allowed_packet=256M
+      - irestora_net
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max_connections=1000 --max_allowed_packet=256M --bind-address=0.0.0.0
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-Root123456!}"]
+      test: ["CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-    
 
   redis:
     image: redis:7-alpine
@@ -80,11 +86,7 @@ volumes:
   app_cache:
   app_logs:
   app_uploads:
-  app_frequent:
 
 networks:
   irestora_net:
     driver: bridge
-
-
-
